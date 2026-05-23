@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>תושבי מזכרת בתיה למען גן יסמין</title>
+    <script src="https://cloudflare.com"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -22,23 +23,27 @@
         button:hover { background-color: #219653; }
         .btn-copied { background-color: #2980b9 !important; }
         
-        .instructions-box { background-color: #e8f4fd; border-right: 4px solid #3498db; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 15px; color: #2c3e50; display: none; line-height: 1.6; }
-        .gmail-fallback-link { display: inline-block; background-color: #e74c3c; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 12px; font-size: 16px; }
-        .gmail-fallback-link:hover { background-color: #c0392b; color: white; }
+        /* סגנון כפתור עקיפת פייסבוק/אינסטגרם */
+        .facebook-fallback { display: none; background-color: #e74c3c; color: white; text-align: center; padding: 12px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 16px; }
+        .facebook-fallback:hover { background-color: #c0392b; color: white; }
+
+        #desktopOverlay { display: none; text-align: center; padding: 40px 20px; }
+        #desktopOverlay h3 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
+        #desktopOverlay p { color: #7f8c8d; font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
+        #qrcode { display: flex; justify-content: center; margin-bottom: 20px; }
+        .phone-icon { font-size: 50px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="mobileContainer" class="container">
     <h2>מאבק בהחלטת סגירת גן יסמין במזכרת בתיה</h2>
     <div class="subtitle">שלחו מכתב אישי ישירות מתיבת המייל שלכם אל נציגי הציבור</div>
 
-    <!-- שלב 1: שם השולח -->
     <label for="userName">השם המלא שלך (חובה):</label>
     <input type="text" id="userName" placeholder="הקלד שם מלא כאן" oninput="updatePreview()">
     <div id="nameError" class="error-message">יש להזין שם מלא לפני השליחה.</div>
 
-    <!-- שלב 2: בחירת נוסח -->
     <label for="versionSelect">בחרו את נוסח המכתב:</label>
     <select id="versionSelect" onchange="updatePreview()">
         <option value="1">נוסח 1: אסטרטגי וכלכלי (מזכרת בתיה)</option>
@@ -46,26 +51,23 @@
         <option value="3">נוסח 3: קצר ותמציתי</option>
     </select>
 
-    <!-- תצוגה מקדימה דינמית -->
     <div class="preview-title">תצוגה מקדימה של המייל שיישלח:</div>
     <div id="emailSubjectPreview" style="font-weight: bold; margin-top: 5px; color: #34495e;"></div>
     <div id="emailBodyPreview" class="preview-box"></div>
 
-    <!-- הנחיות אינטראקטיביות שיופיעו לאחר הלחיצה -->
-    <div id="instructions" class="instructions-box">
-        <strong>מה עושים עכשיו?</strong><br>
-        <span id="instructionText">המכתב הועתק לזיכרון של המחשב.</span><br>
-        לחצו על הכפתור האדום למטה כדי לפתוח את תיבת ה-Gmail שלכם, שם תבצעו <strong>"הדבק" (Paste / קליק ימני)</strong> ותשלחו!
-        
-        <div id="desktopGmailContainer" style="display:none; margin-top: 5px;">
-            <a id="desktopGmailLink" class="gmail-fallback-link" href="#">פתח את Gmail שלי עכשיו</a>
-        </div>
-    </div>
-
-    <!-- כפתור פעולה -->
     <button id="actionBtn" onclick="processEmail()">
-        📧 העתק מכתב ופתח את האימייל שלי
+        📧 לחצו כאן לשליחת המכתב מהנייד
     </button>
+
+    <!-- כפתור הגנה חבוי שיופיע רק בדפדפנים פנימיים כמו פייסבוק אם יש חסימה -->
+    <a id="fbFallbackBtn" class="facebook-fallback" href="#">הקליקו כאן אם אפליקציית המייל לא נפתחה</a>
+</div>
+
+<div id="desktopOverlay" class="container">
+    <div class="phone-icon">📱</div>
+    <h3>האתר מותאם לשימוש מהטלפון הנייד בלבד</h3>
+    <p>כדי לשלוח את המכתב האוטומטי בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
+    <div id="qrcode"></div>
 </div>
 
 <script>
@@ -85,8 +87,26 @@ const emailTemplates = {
 };
 
 window.onload = function () {
-    setRandomOption();
-    updatePreview();
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        document.getElementById("mobileContainer").style.display = "block";
+        document.getElementById("desktopOverlay").style.display = "none";
+        setRandomOption();
+        updatePreview();
+    } else {
+        document.getElementById("mobileContainer").style.display = "none";
+        document.getElementById("desktopOverlay").style.display = "block";
+        
+        new QRCode(document.getElementById("qrcode"), {
+            text: window.location.href,
+            width: 180,
+            height: 180,
+            colorDark : "#2c3e50",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
 };
 
 function updatePreview() {
@@ -128,30 +148,25 @@ function processEmail() {
 
     const emailTo = "shavittiulim@gmail.com";
     const subject = encodeURIComponent(template.subject);
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     navigator.clipboard.writeText(fullBody).then(() => {
         const btn = document.getElementById("actionBtn");
         btn.classList.add("btn-copied");
-        btn.innerHTML = "📋 המכתב הועתק בהצלחה!";
+        btn.innerHTML = "📋 המכתב הועתק! עוברים למייל...";
         
-        document.getElementById("instructions").style.display = "block";
+        const mailtoUrl = `mailto:${emailTo}?subject=${subject}`;
+        
+        // הגנה ייעודית לפייסבוק/אינסטגרם: מעדכן את כפתור הגיבוי האדום ומציג אותו ליתר ביטחון
+        const fallbackBtn = document.getElementById("fbFallbackBtn");
+        fallbackBtn.href = mailtoUrl;
+        fallbackBtn.style.display = "block";
 
-        if (isMobile) {
-            // בנייל: פתיחה אוטומטית ישירה ללא שינוי (עובד מעולה מתוך ווטסאפ)
-            window.location.href = `mailto:${emailTo}?subject=${subject}`;
-        } else {
-            // במחשב: עדכון הקישור האדום החדש לעבודה באותו החלון (_self) כדי לעקוף חוסמים לחלוטין!
-            const fallbackLink = document.getElementById("desktopGmailLink");
-            fallbackLink.href = `https://google.com{emailTo}&su=${subject}`;
-            fallbackLink.setAttribute('target', '_self'); // עקיפה מוחלטת של חוסמי חלונות קופצים
-            document.getElementById("desktopGmailContainer").style.display = "block";
-        }
+        // ניסיון פתיחה אוטומטי
+        window.location.href = mailtoUrl;
     }).catch(err => {
-        console.log("Clipboard error");
+        window.location.href = `mailto:${emailTo}?subject=${subject}`;
     });
 }
 </script>
-
 </body>
 </html>
