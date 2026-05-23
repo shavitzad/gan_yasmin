@@ -133,6 +133,7 @@ function startAuth() {
     const inputField = document.getElementById("userName");
     const name = inputField.value.trim();
     
+    // 1. בדיקה שהמשתמש הזין שם
     if (!name) {
         inputField.classList.add("input-error");
         document.getElementById("nameError").style.display = "block";
@@ -140,13 +141,16 @@ function startAuth() {
         return;
     }
 
+    // 2. שינוי מצב הכפתור לטעינה
     document.getElementById("actionBtn").disabled = true;
     document.getElementById("actionBtn").innerText = "...מבצע התחברות מאובטחת";
     
-    if (tokenClient) {
+    // 3. הפעלה ישירה של חלון גוגל (כמו בכל אתר רגיל)
+    try {
         tokenClient.requestAccessToken({ prompt: 'consent' });
-    } else {
-        alert("שגיאה: ה-SDK של גוגל לא נטען כראוי. ודאי שכתובת ה-Script ב-head תקינה.");
+    } catch (error) {
+        // במקרה חריג שהספרייה באמת לא קיימת, נחזיר את הכפתור למצב פעיל
+        alert("שגיאה בהפעלת שירות ההתחברות של גוגל. אנא נסה שנית.");
         resetButton();
     }
 }
