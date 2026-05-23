@@ -18,12 +18,13 @@
         .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; min-height: 100px; }
         .preview-title { font-weight: bold; margin-top: 15px; color: #2c3e50; }
         
-        /* עיצוב כפתור דינמי וברור */
-        .action-btn { width: 100%; background-color: #27ae60; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .action-btn:hover { background-color: #219653; }
+        button { width: 100%; background-color: #27ae60; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: all 0.3s ease; }
+        button:hover { background-color: #219653; }
         .btn-copied { background-color: #2980b9 !important; }
         
-        .instructions-box { background-color: #e8f4fd; border-right: 4px solid #3498db; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 14px; color: #2c3e50; display: none; }
+        .instructions-box { background-color: #e8f4fd; border-right: 4px solid #3498db; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 15px; color: #2c3e50; display: none; line-height: 1.6; }
+        .gmail-fallback-link { display: inline-block; background-color: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+        .gmail-fallback-link:hover { background-color: #c0392b; color: white; }
     </style>
 </head>
 <body>
@@ -53,12 +54,19 @@
     <!-- הנחיות אינטראקטיביות שיופיעו לאחר הלחיצה -->
     <div id="instructions" class="instructions-box">
         <strong>מה עושים עכשיו?</strong><br>
-        האימייל שלכם נפתח כעת במערכת. לחצו בתוך גוף ההודעה הריקה על <strong>"הדבק" (Paste / קליק ימני)</strong> כדי להכניס את המכתב, ולחצו על שלח!
+        <span id="instructionText">האיมייל שלכם נפתח כעת במערכת.</span>
+        לחצו בתוך גוף ההודעה הריקה על <strong>"הדבק" (Paste / קליק ימני)</strong> כדי להכניס את המכתב המלא, ולחצו על שלח!
+        
+        <!-- קישור ייעודי למשתמשי מחשב שנחסמים -->
+        <div id="desktopGmailContainer" style="display:none; margin-top: 10px; border-top: 1px solid #d6e9f8; padding-top: 10px;">
+            אם לשונית המייל לא נפתחה אוטומטית בגלל הגדרות הדפדפן, לחצו כאן: <br>
+            <a id="desktopGmailLink" class="gmail-fallback-link" href="#" target="_blank">פתח את Gmail שלי עכשיו</a>
+        </div>
     </div>
 
-    <!-- כפתור פעולה סופי -->
-    <button id="actionBtn" class="action-btn" onclick="processEmail()">
-        <span>📧 העתק מכתב ופתח את האימייל שלי</span>
+    <!-- כפתור פעולה -->
+    <button id="actionBtn" onclick="processEmail()">
+        📧 העתק מכתב ופתח את האימייל שלי
     </button>
 </div>
 
@@ -104,6 +112,7 @@ function setRandomOption() {
     const randomIndex = Math.floor(Math.random() * options.length);
     document.getElementById("versionSelect").value = options[randomIndex];
 }
+
 function processEmail() {
     const inputField = document.getElementById("userName");
     const name = inputField.value.trim();
@@ -119,38 +128,35 @@ function processEmail() {
     const template = emailTemplates[selectedVersion];
     const fullBody = template.body + name;
 
-    // 1. העתקת הטקסט לזיכרון של המחשב/טלפון
+    const emailTo = "shavittiulim@gmail.com";
+    const subject = encodeURIComponent(template.subject);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // העתקת הטקסט לקליפבורד
     navigator.clipboard.writeText(fullBody).then(() => {
-        
-        // 2. עדכון חזותי של הכפתור וההנחיות באתר
+        // עדכון כפתור השליחה
         const btn = document.getElementById("actionBtn");
         btn.classList.add("btn-copied");
-        btn.innerHTML = "📋 המכתב הועתק! הדביקו אותו במייל שלכם";
+        btn.innerHTML = "📋 המכתב הועתק בהצלחה!";
+        
+        // הצגת קופסת ההנחיות
         document.getElementById("instructions").style.display = "block";
 
-        // 3. הגדרת נתוני המייל
-        const emailTo = "shavittiulim@gmail.com";
-        const subject = encodeURIComponent(template.subject);
-        
-        // 4. זיהוי האם המשתמש גולש מהטלפון או מהמחשב
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        setTimeout(() => {
-            if (isMobile) {
-                // בטלפון נייד: פותח את אפליקציית המייל המובנית של המכשיר
-                window.location.href = `mailto:${emailTo}?subject=${subject}`;
-            } else {
-                // במחשב: פותח ישירות את חלון כתיבת ההודעה הרשמי של Gmail בדפדפן בלשונית חדשה!
-                const gmailUrl = `https://google.com{emailTo}&su=${subject}`;
-                window.open(gmailUrl, '_blank');
-            }
-        }, 300);
-
+        if (isMobile) {
+            // בנייל: פתיחה אוטומטית כרגיל באפליקציה (עובד מעולה)
+            window.location.href = `mailto:${emailTo}?subject=${subject}`;
+        } else {
+            // במחשב: עדכון הקישור האדום החדש על המסך והצגתו
+            document.getElementById("instructionText").innerText = "המכתב הועתק לזיכרון של המחשב.";
+            const fallbackLink = document.getElementById("desktopGmailLink");
+            fallbackLink.href = `https://google.com{emailTo}&su=${subject}`;
+            document.getElementById("desktopGmailContainer").style.display = "block";
+            
+            // ניסיון פתיחה אוטומטי אחד אחרון, במידה והדפדפן יזרום
+            window.open(fallbackLink.href, '_blank');
+        }
     }).catch(err => {
-        // גיבוי למקרה חירום
-        const emailTo = "shavittiulim@gmail.com";
-        const subject = encodeURIComponent(template.subject);
-        window.location.href = `mailto:${emailTo}?subject=${subject}`;
+        console.log("Clipboard error");
     });
 }
 </script>
