@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>תושבי מזכרת בתיה למען גן יסמין</title>
+    <title>תושבי מזכרת בתיה למען גן יסמין - הגרסה הרשמית</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -18,9 +18,14 @@
         .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; min-height: 100px; }
         .preview-title { font-weight: bold; margin-top: 15px; color: #2c3e50; }
         
-        button { width: 100%; background-color: #27ae60; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: all 0.3s ease; }
-        button:hover { background-color: #219653; }
-        .btn-copied { background-color: #2980b9 !important; }
+        /* סגנון כפתורי השליחה המפוצלים */
+        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+        .send-btn { width: 100%; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 17px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; text-align: center; box-sizing: border-box; }
+        .btn-coalition { background-color: #27ae60; }
+        .btn-coalition:hover { background-color: #219653; }
+        .btn-opposition { background-color: #2980b9; }
+        .btn-opposition:hover { background-color: #1f6391; }
+        .btn-copied { background-color: #7f8c8d !important; }
         
         .facebook-fallback { display: none; background-color: #e74c3c; color: white; text-align: center; padding: 12px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 16px; }
         .facebook-fallback:hover { background-color: #c0392b; color: white; }
@@ -37,7 +42,7 @@
 
 <div id="mobileContainer" class="container">
     <h2>מאבק בהחלטת סגירת גן יסמין במזכרת בתיה</h2>
-    <div class="subtitle">שלחו מכתב אישי ישירות מתיבת המייל שלכם אל נציגי הציבור</div>
+    <div class="subtitle">שלחו מכתב אישי ישירות מתיבת המייל שלכם אל נציגי הציבור במועצה</div>
 
     <label for="userName">השם המלא שלך (חובה):</label>
     <input type="text" id="userName" placeholder="הקלד שם מלא כאן" oninput="updatePreview()">
@@ -54,9 +59,15 @@
     <div id="emailSubjectPreview" style="font-weight: bold; margin-top: 5px; color: #34495e;"></div>
     <div id="emailBodyPreview" class="preview-box"></div>
 
-    <button id="actionBtn" onclick="processEmail()">
-        📧 לחצו כאן לשליחת המכתב מהנייד
-    </button>
+    <!-- כפתורי שליחה מפוצלים לקואליציה ואופוזיציה בלבד (ללא ראש המועצה) -->
+    <div class="btn-group">
+        <button id="btn1" class="send-btn btn-coalition" onclick="processEmail('coalition', 'btn1')">
+            שלחו לחברי הקואליציה במועצה 📧
+        </button>
+        <button id="btn2" class="send-btn btn-opposition" onclick="processEmail('opposition', 'btn2')">
+            שלחו לחברי האופוזיציה במועצה 📧
+        </button>
+    </div>
 
     <a id="fbFallbackBtn" class="facebook-fallback" href="#">הקליקו כאן אם אפליקציית המייל לא נפתחה</a>
 </div>
@@ -64,9 +75,7 @@
 <div id="desktopOverlay" class="container">
     <div class="phone-icon">📱</div>
     <h3>האתר מותאם לשימוש מהטלפון הנייד בלבד</h3>
-    <p>כדי לשלוח את המכתב האוטומטי בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
-    
-    <!-- שינוי קריטי: שימוש בקובץ המקומי שהוספת לתיקייה -->
+    <p>כדי לשלוח את המכתב הרשמי בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
     <div id="qrcode">
         <img src="QR_code.png" alt="קוד QR לסריקה">
     </div>
@@ -90,7 +99,6 @@ const emailTemplates = {
 
 window.onload = function () {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
     if (isMobile) {
         document.getElementById("mobileContainer").style.display = "block";
         document.getElementById("desktopOverlay").style.display = "none";
@@ -124,7 +132,7 @@ function setRandomOption() {
     document.getElementById("versionSelect").value = options[randomIndex];
 }
 
-function processEmail() {
+function processEmail(targetGroup, btnId) {
     const inputField = document.getElementById("userName");
     const name = inputField.value.trim();
     
@@ -138,16 +146,27 @@ function processEmail() {
     const selectedVersion = document.getElementById("versionSelect").value;
     const template = emailTemplates[selectedVersion];
     const fullBody = template.body + name;
-
-    const emailTo = "shavittiulim@gmail.com";
     const subject = encodeURIComponent(template.subject);
 
+    let emailTo = "";
+    let emailCc = "";
+
+    if (targetGroup === 'coalition') {
+        // קואליציה: שליחה אל סגן ראש המועצה, והשאר בעותק (סה"כ 5 נמענים)
+        emailTo = "shmuelm@mbatya.org.il";
+        emailCc = ["abirlev8@gmail.com", "eli.vidavsky@gmail.com", "Kobys@Amdocs.com", "shmouelc@gmail.com"].join(",");
+    } else {
+        // אופוזיציה (מזכרת מתעוררת): שליחה אל נציג ראשון, והשאר בעותק (סה"כ 7 נמענים)
+        emailTo = "ran.cohen@gmail.com";
+        emailCc = ["eladasraf8@gmail.com", "layafit@gmail.com", "ronenmnls@gmail.com", "kiki.aharonovitz@gmail.com", "birmanu@gmail.com", "Ofiramor25@gmail.com"].join(",");
+    }
+
     navigator.clipboard.writeText(fullBody).then(() => {
-        const btn = document.getElementById("actionBtn");
+        const btn = document.getElementById(btnId);
         btn.classList.add("btn-copied");
-        btn.innerHTML = "📋 המכתב הועתק! עוברים למייל...";
+        btn.innerHTML = "✓ המכתב הועתק והמייל נפתח!";
         
-        const mailtoUrl = `mailto:${emailTo}?subject=${subject}`;
+        const mailtoUrl = `mailto:${emailTo}?cc=${emailCc}&subject=${subject}`;
         
         const fallbackBtn = document.getElementById("fbFallbackBtn");
         fallbackBtn.href = mailtoUrl;
@@ -155,9 +174,3 @@ function processEmail() {
 
         window.location.href = mailtoUrl;
     }).catch(err => {
-        window.location.href = `mailto:${emailTo}?subject=${subject}`;
-    });
-}
-</script>
-</body>
-</html>
