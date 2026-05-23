@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>תושבי מזכרת בתיה למען גן יסמין - הגרסה הרשמית</title>
+    <title>תושבי מזכרת בתיה למען גן יסמין - פנייה אישית</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -18,17 +18,20 @@
         .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; min-height: 100px; }
         .preview-title { font-weight: bold; margin-top: 15px; color: #2c3e50; }
         
-        /* סגנון כפתורי השליחה המפוצלים */
-        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
-        .send-btn { width: 100%; color: white; padding: 14px; border: none; border-radius: 4px; font-size: 17px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; text-align: center; box-sizing: border-box; }
-        .btn-coalition { background-color: #27ae60; }
-        .btn-coalition:hover { background-color: #219653; }
-        .btn-opposition { background-color: #2980b9; }
-        .btn-opposition:hover { background-color: #1f6391; }
-        .btn-copied { background-color: #7f8c8d !important; }
+        .council-list { margin-top: 25px; border-top: 2px solid #eee; padding-top: 15px; }
+        .list-title { font-weight: bold; font-size: 18px; color: #2c3e50; margin-bottom: 12px; }
+        .member-card { display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; padding: 12px; border: 1px solid #eaeaea; border-radius: 6px; margin-bottom: 8px; transition: background 0.2s; }
+        .member-card:hover { background: #f7f9f8; }
+        .member-info { display: flex; flex-direction: column; gap: 4px; }
+        .member-name { font-weight: bold; color: #2c3e50; font-size: 15px; }
         
-        .facebook-fallback { display: none; background-color: #e74c3c; color: white; text-align: center; padding: 12px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 16px; }
-        .facebook-fallback:hover { background-color: #c0392b; color: white; }
+        .faction-tag { display: inline-block; font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: bold; width: fit-content; }
+        .tag-coalition { background-color: #e8f8f5; color: #1e8449; }
+        .tag-opposition { background-color: #eaf2f8; color: #2471a3; }
+        
+        .send-mini-btn { background-color: #27ae60; color: white; border: none; padding: 8px 14px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.2s ease; text-decoration: none; }
+        .send-mini-btn:hover { background-color: #219653; }
+        .mini-btn-copied { background-color: #95a5a6 !important; cursor: default; }
 
         #desktopOverlay { display: none; text-align: center; padding: 40px 20px; }
         #desktopOverlay h3 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
@@ -42,11 +45,11 @@
 
 <div id="mobileContainer" class="container">
     <h2>מאבק בהחלטת סגירת גן יסמין במזכרת בתיה</h2>
-    <div class="subtitle">שלחו מכתב אישי ישירות מתיבת המייל שלכם אל נציגי הציבור במועצה</div>
+    <div class="subtitle">הקלידו את שמכם, בחרו נוסח, ושלחו באופן אישי לחברי המועצה (אחד אחרי השני):</div>
 
     <label for="userName">השם המלא שלך (חובה):</label>
     <input type="text" id="userName" placeholder="הקלד שם מלא כאן" oninput="updatePreview()">
-    <div id="nameError" class="error-message">יש להזין שם מלא לפני השליחה.</div>
+    <div id="nameError" class="error-message">יש להזין שם מלא לפני פתיחת המייל.</div>
 
     <label for="versionSelect">בחרו את נוסח המכתב:</label>
     <select id="versionSelect" onchange="updatePreview()">
@@ -59,29 +62,36 @@
     <div id="emailSubjectPreview" style="font-weight: bold; margin-top: 5px; color: #34495e;"></div>
     <div id="emailBodyPreview" class="preview-box"></div>
 
-    <!-- כפתורי שליחה מפוצלים לקואליציה ואופוזיציה בלבד (ללא ראש המועצה) -->
-    <div class="btn-group">
-        <button id="btn1" class="send-btn btn-coalition" onclick="processEmail('coalition', 'btn1')">
-            שלחו לחברי הקואליציה במועצה 📧
-        </button>
-        <button id="btn2" class="send-btn btn-opposition" onclick="processEmail('opposition', 'btn2')">
-            שלחו לחברי האופוזיציה במועצה 📧
-        </button>
+    <div class="council-list">
+        <div class="list-title">נבחרי הציבור במועצה:</div>
+        <div id="membersContainer"></div>
     </div>
-
-    <a id="fbFallbackBtn" class="facebook-fallback" href="#">הקליקו כאן אם אפליקציית המייל לא נפתחה</a>
 </div>
 
 <div id="desktopOverlay" class="container">
     <div class="phone-icon">📱</div>
     <h3>האתר מותאם לשימוש מהטלפון הנייד בלבד</h3>
-    <p>כדי לשלוח את המכתב הרשמי בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
+    <p>כדי לשלוח את המכתבים האישיים בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
     <div id="qrcode">
         <img src="QR_code.png" alt="קוד QR לסריקה">
     </div>
 </div>
-
 <script>
+const councilMembers = [
+    { name: "שמואל משולם (סגן רח\"צ)", email: "shmuelm@mbatya.org.il", faction: "coalition" },
+    { name: "אהוד אביר-לב", email: "abirlev8@gmail.com", faction: "coalition" },
+    { name: "אלי וידבסקי", email: "eli.vidavsky@gmail.com", faction: "coalition" },
+    { name: "קובי שטיינברג", email: "Kobys@Amdocs.com", faction: "coalition" },
+    { name: "שמואל מימון", email: "shmouelc@gmail.com", faction: "coalition" },
+    { name: "רן כהן", email: "ran.cohen@gmail.com", faction: "opposition" },
+    { name: "אלעד אסרף", email: "eladasraf8@gmail.com", faction: "opposition" },
+    { name: "יפית לחמני", email: "layafit@gmail.com", faction: "opposition" },
+    { name: "רונן מנליס", email: "ronenmnls@gmail.com", faction: "opposition" },
+    { name: "קיקי (יצחק) אהרונוביץ", email: "kiki.aharonovitz@gmail.com", faction: "opposition" },
+    { name: "אורי בירמן", email: "birmanu@gmail.com", faction: "opposition" },
+    { name: "אופירה מור", email: "Ofiramor25@gmail.com", faction: "opposition" }
+];
+
 const emailTemplates = {
     "1": {
         subject: "פנייה דחופה – סגירת גן יסמין היא טעות אסטרטגית ליישוב",
@@ -98,12 +108,14 @@ const emailTemplates = {
 };
 
 window.onload = function () {
+    setRandomOption();
+    updatePreview();
+    renderMembers();
+
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
         document.getElementById("mobileContainer").style.display = "block";
         document.getElementById("desktopOverlay").style.display = "none";
-        setRandomOption();
-        updatePreview();
     } else {
         document.getElementById("mobileContainer").style.display = "none";
         document.getElementById("desktopOverlay").style.display = "block";
@@ -132,7 +144,33 @@ function setRandomOption() {
     document.getElementById("versionSelect").value = options[randomIndex];
 }
 
-function processEmail(targetGroup, btnId) {
+function renderMembers() {
+    const container = document.getElementById("membersContainer");
+    if(!container) return;
+    
+    container.innerHTML = "";
+    
+    councilMembers.forEach((member, index) => {
+        const isCoalition = member.faction === 'coalition';
+        const factionText = isCoalition ? 'קואליציה' : 'אופוזיציה';
+        const factionClass = isCoalition ? 'tag-coalition' : 'tag-opposition';
+        
+        const card = document.createElement("div");
+        card.className = "member-card";
+        card.innerHTML = `
+            <div class="member-info">
+                <span class="member-name">${member.name}</span>
+                <span class="faction-tag ${factionClass}">${factionText}</span>
+            </div>
+            <button id="memberBtn_${index}" class="send-mini-btn" onclick="sendToMember('${member.email}', ${index})">
+                📧 שלח אל
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function sendToMember(email, index) {
     const inputField = document.getElementById("userName");
     const name = inputField.value.trim();
     
@@ -140,6 +178,7 @@ function processEmail(targetGroup, btnId) {
         inputField.classList.add("input-error");
         document.getElementById("nameError").style.display = "block";
         inputField.focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
 
@@ -148,29 +187,17 @@ function processEmail(targetGroup, btnId) {
     const fullBody = template.body + name;
     const subject = encodeURIComponent(template.subject);
 
-    let emailTo = "";
-    let emailCc = "";
-
-    if (targetGroup === 'coalition') {
-        // קואליציה: שליחה אל סגן ראש המועצה, והשאר בעותק (סה"כ 5 נמענים)
-        emailTo = "shmuelm@mbatya.org.il";
-        emailCc = ["abirlev8@gmail.com", "eli.vidavsky@gmail.com", "Kobys@Amdocs.com", "shmouelc@gmail.com"].join(",");
-    } else {
-        // אופוזיציה (מזכרת מתעוררת): שליחה אל נציג ראשון, והשאר בעותק (סה"כ 7 נמענים)
-        emailTo = "ran.cohen@gmail.com";
-        emailCc = ["eladasraf8@gmail.com", "layafit@gmail.com", "ronenmnls@gmail.com", "kiki.aharonovitz@gmail.com", "birmanu@gmail.com", "Ofiramor25@gmail.com"].join(",");
-    }
-
     navigator.clipboard.writeText(fullBody).then(() => {
-        const btn = document.getElementById(btnId);
-        btn.classList.add("btn-copied");
-        btn.innerHTML = "✓ המכתב הועתק והמייל נפתח!";
+        const btn = document.getElementById(`memberBtn_${index}`);
+        btn.classList.add("mini-btn-copied");
+        btn.innerHTML = "✓ נשלח";
         
-        const mailtoUrl = `mailto:${emailTo}?cc=${emailCc}&subject=${subject}`;
-        
-        const fallbackBtn = document.getElementById("fbFallbackBtn");
-        fallbackBtn.href = mailtoUrl;
-        fallbackBtn.style.display = "block";
-
-        window.location.href = mailtoUrl;
+        window.location.href = `mailto:${email}?subject=${subject}`;
     }).catch(err => {
+        window.location.href = `mailto:${email}?subject=${subject}`;
+    });
+}
+</script>
+</body>
+</html>
+
