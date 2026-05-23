@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>תושבי מזכרת בתיה למען גן יסמין</title>
-    <script src="https://cloudflare.com"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -23,7 +22,6 @@
         button:hover { background-color: #219653; }
         .btn-copied { background-color: #2980b9 !important; }
         
-        /* סגנון כפתור עקיפת פייסבוק/אינסטגרם */
         .facebook-fallback { display: none; background-color: #e74c3c; color: white; text-align: center; padding: 12px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 15px; font-size: 16px; }
         .facebook-fallback:hover { background-color: #c0392b; color: white; }
 
@@ -31,6 +29,7 @@
         #desktopOverlay h3 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
         #desktopOverlay p { color: #7f8c8d; font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
         #qrcode { display: flex; justify-content: center; margin-bottom: 20px; }
+        #qrcode img { border: 1px solid #ccc; padding: 8px; background: white; border-radius: 4px; max-width: 180px; height: auto; }
         .phone-icon { font-size: 50px; margin-bottom: 15px; }
     </style>
 </head>
@@ -59,7 +58,6 @@
         📧 לחצו כאן לשליחת המכתב מהנייד
     </button>
 
-    <!-- כפתור הגנה חבוי שיופיע רק בדפדפנים פנימיים כמו פייסבוק אם יש חסימה -->
     <a id="fbFallbackBtn" class="facebook-fallback" href="#">הקליקו כאן אם אפליקציית המייל לא נפתחה</a>
 </div>
 
@@ -67,7 +65,11 @@
     <div class="phone-icon">📱</div>
     <h3>האתר מותאם לשימוש מהטלפון הנייד בלבד</h3>
     <p>כדי לשלוח את המכתב האוטומטי בקלות ובמהירות ישירות מתיבת המייל שלכם,<br>סרקו את קוד ה-QR עם מצלמת הטלפון שלכם והמשיכו משם:</p>
-    <div id="qrcode"></div>
+    
+    <!-- שינוי קריטי: שימוש בקובץ המקומי שהוספת לתיקייה -->
+    <div id="qrcode">
+        <img src="QR_code.png" alt="קוד QR לסריקה">
+    </div>
 </div>
 
 <script>
@@ -97,15 +99,6 @@ window.onload = function () {
     } else {
         document.getElementById("mobileContainer").style.display = "none";
         document.getElementById("desktopOverlay").style.display = "block";
-        
-        new QRCode(document.getElementById("qrcode"), {
-            text: window.location.href,
-            width: 180,
-            height: 180,
-            colorDark : "#2c3e50",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
     }
 };
 
@@ -156,12 +149,10 @@ function processEmail() {
         
         const mailtoUrl = `mailto:${emailTo}?subject=${subject}`;
         
-        // הגנה ייעודית לפייסבוק/אינסטגרם: מעדכן את כפתור הגיבוי האדום ומציג אותו ליתר ביטחון
         const fallbackBtn = document.getElementById("fbFallbackBtn");
         fallbackBtn.href = mailtoUrl;
         fallbackBtn.style.display = "block";
 
-        // ניסיון פתיחה אוטומטי
         window.location.href = mailtoUrl;
     }).catch(err => {
         window.location.href = `mailto:${emailTo}?subject=${subject}`;
