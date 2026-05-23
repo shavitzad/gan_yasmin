@@ -23,7 +23,7 @@
         .btn-copied { background-color: #2980b9 !important; }
         
         .instructions-box { background-color: #e8f4fd; border-right: 4px solid #3498db; padding: 12px; border-radius: 4px; margin-top: 15px; font-size: 15px; color: #2c3e50; display: none; line-height: 1.6; }
-        .gmail-fallback-link { display: inline-block; background-color: #e74c3c; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 10px; }
+        .gmail-fallback-link { display: inline-block; background-color: #e74c3c; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; margin-top: 12px; font-size: 16px; }
         .gmail-fallback-link:hover { background-color: #c0392b; color: white; }
     </style>
 </head>
@@ -54,13 +54,11 @@
     <!-- הנחיות אינטראקטיביות שיופיעו לאחר הלחיצה -->
     <div id="instructions" class="instructions-box">
         <strong>מה עושים עכשיו?</strong><br>
-        <span id="instructionText">האיมייל שלכם נפתח כעת במערכת.</span>
-        לחצו בתוך גוף ההודעה הריקה על <strong>"הדבק" (Paste / קליק ימני)</strong> כדי להכניס את המכתב המלא, ולחצו על שלח!
+        <span id="instructionText">המכתב הועתק לזיכרון של המחשב.</span><br>
+        לחצו על הכפתור האדום למטה כדי לפתוח את תיבת ה-Gmail שלכם, שם תבצעו <strong>"הדבק" (Paste / קליק ימני)</strong> ותשלחו!
         
-        <!-- קישור ייעודי למשתמשי מחשב שנחסמים -->
-        <div id="desktopGmailContainer" style="display:none; margin-top: 10px; border-top: 1px solid #d6e9f8; padding-top: 10px;">
-            אם לשונית המייל לא נפתחה אוטומטית בגלל הגדרות הדפדפן, לחצו כאן: <br>
-            <a id="desktopGmailLink" class="gmail-fallback-link" href="#" target="_blank">פתח את Gmail שלי עכשיו</a>
+        <div id="desktopGmailContainer" style="display:none; margin-top: 5px;">
+            <a id="desktopGmailLink" class="gmail-fallback-link" href="#">פתח את Gmail שלי עכשיו</a>
         </div>
     </div>
 
@@ -132,28 +130,22 @@ function processEmail() {
     const subject = encodeURIComponent(template.subject);
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // העתקת הטקסט לקליפבורד
     navigator.clipboard.writeText(fullBody).then(() => {
-        // עדכון כפתור השליחה
         const btn = document.getElementById("actionBtn");
         btn.classList.add("btn-copied");
         btn.innerHTML = "📋 המכתב הועתק בהצלחה!";
         
-        // הצגת קופסת ההנחיות
         document.getElementById("instructions").style.display = "block";
 
         if (isMobile) {
-            // בנייל: פתיחה אוטומטית כרגיל באפליקציה (עובד מעולה)
+            // בנייל: פתיחה אוטומטית ישירה ללא שינוי (עובד מעולה מתוך ווטסאפ)
             window.location.href = `mailto:${emailTo}?subject=${subject}`;
         } else {
-            // במחשב: עדכון הקישור האדום החדש על המסך והצגתו
-            document.getElementById("instructionText").innerText = "המכתב הועתק לזיכרון של המחשב.";
+            // במחשב: עדכון הקישור האדום החדש לעבודה באותו החלון (_self) כדי לעקוף חוסמים לחלוטין!
             const fallbackLink = document.getElementById("desktopGmailLink");
             fallbackLink.href = `https://google.com{emailTo}&su=${subject}`;
+            fallbackLink.setAttribute('target', '_self'); // עקיפה מוחלטת של חוסמי חלונות קופצים
             document.getElementById("desktopGmailContainer").style.display = "block";
-            
-            // ניסיון פתיחה אוטומטי אחד אחרון, במידה והדפדפן יזרום
-            window.open(fallbackLink.href, '_blank');
         }
     }).catch(err => {
         console.log("Clipboard error");
