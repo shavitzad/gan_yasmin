@@ -18,7 +18,7 @@
         
         .error-message { color: #e74c3c; font-size: 14px; font-weight: bold; margin-top: 5px; display: none; }
         .input-error { border: 2px solid #e74c3c !important; background-color: #fdeaea; }
-        .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; }
+        .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; min-height: 100px; }
         .preview-title { font-weight: bold; margin-top: 15px; color: #2c3e50; }
         
         button { width: 100%; background-color: #27ae60; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: background 0.3s; }
@@ -64,7 +64,7 @@
 </div>
 
 <script>
-// חובה להדביק כאן את ה-Client ID שקיבלת מגוגל קלאוד
+// חובה להקפיד להחליף כאן את ה-Client ID האמיתי שלך
 const CLIENT_ID = '747214951182-dagjbteg9fkff0qr7adim0sed9dj61e3.apps.googleusercontent.com'; 
 const SCOPES = 'https://googleapis.com'; 
 
@@ -87,32 +87,22 @@ const emailTemplates = {
 };
 
 window.onload = function () {
-    try {
-        if (typeof google === 'undefined' || typeof google.accounts === 'undefined') {
-            alert("שגיאה קריטית: הספרייה של גוגל לא נטענה בדף. בדקו חיבור לאינטרנט או תוספים חוסמי קוד (AdBlock).");
-            return;
-        }
-        
-        tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: CLIENT_ID,
-            scope: SCOPES,
-            callback: (tokenResponse) => {
-                if (tokenResponse.error !== undefined) {
-                    alert("שגיאת אימות מגוגל: " + tokenResponse.error + "\nתיאור: " + tokenResponse.error_description);
-                    resetButton();
-                    return;
-                }
-                accessToken = tokenResponse.access_token;
-                executeGmailSend();
-            },
-            error_callback: (err) => {
-                alert("שגיאת אתחול פנימית של הלקוח: " + JSON.stringify(err));
+    // 1. אתחול מנגנון ה-OAuth של גוגל
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+            if (tokenResponse.error !== undefined) {
+                alert("ההתחברות לגוגל בבוטלה או נכשלה.");
                 resetButton();
+                return;
             }
-        });
-    } catch (e) {
-        alert("נכשלה יצירת הלקוח של גוגל. שגיאה: " + e.message);
-    }
+            accessToken = tokenResponse.access_token;
+            executeGmailSend();
+        },
+    });
+
+    // 2. הפעלת הרנדומיזציה ועדכון התצוגה המקדימה מיד כשהעמוד עולה
     setRandomOption();
     updatePreview();
 };
@@ -150,21 +140,10 @@ function startAuth() {
         return;
     }
 
-    if (CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
-        alert("🚨 שגיאת מתכנת: לא החלפת את הטקסט 'YOUR_GOOGLE_CLIENT_ID' בתוך הקוד ב-Client ID האמיתי שלך!");
-        return;
-    }
-
     document.getElementById("actionBtn").disabled = true;
     document.getElementById("actionBtn").innerText = "...מבצע התחברות מאובטחת";
     
-    try {
-        alert("מנסה לפתוח כעת את חלון האימות של גוגל...");
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-    } catch (e) {
-        alert("הפקודה לפתיחת החלון נכשלה בקוד. שגיאה: " + e.message);
-        resetButton();
-    }
+    tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 
 function resetButton() {
@@ -203,3 +182,17 @@ async function executeGmailSend() {
         });
 
         if (response.ok) {
+            alert("הצלחה! המכתב הארוך נשלח ישירות מתיבת הג'ימייל שלך לכתובת shavittiulim@gmail.com!");
+        } else {
+            const errData = await response.json();
+            alert("שגיאת גוגל: " + errData.error.message);
+        }
+    } catch (err) {
+        alert("תקלת תקשורת: " + err.message);
+    } finally {
+        resetButton();
+    }
+}
+</script>
+</body>
+</html>
