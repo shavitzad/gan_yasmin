@@ -104,7 +104,6 @@ function setRandomOption() {
     const randomIndex = Math.floor(Math.random() * options.length);
     document.getElementById("versionSelect").value = options[randomIndex];
 }
-
 function processEmail() {
     const inputField = document.getElementById("userName");
     const name = inputField.value.trim();
@@ -120,26 +119,35 @@ function processEmail() {
     const template = emailTemplates[selectedVersion];
     const fullBody = template.body + name;
 
-    // 1. העתקה מהירה של הטקסט לזיכרון ללא פקודות alert חוסמות
+    // 1. העתקת הטקסט לזיכרון של המחשב/טלפון
     navigator.clipboard.writeText(fullBody).then(() => {
         
-        // 2. עדכון חזותי של הכפתור והצגת תיבת ההנחיות באתר
+        // 2. עדכון חזותי של הכפתור וההנחיות באתר
         const btn = document.getElementById("actionBtn");
         btn.classList.add("btn-copied");
         btn.innerHTML = "📋 המכתב הועתק! הדביקו אותו במייל שלכם";
         document.getElementById("instructions").style.display = "block";
 
-        // 3. יצירת קישור ה-mailto הקצר והבטוח לפתיחת המייל
+        // 3. הגדרת נתוני המייל
         const emailTo = "shavittiulim@gmail.com";
         const subject = encodeURIComponent(template.subject);
         
-        // הפעלה מאובטחת שעובדת גם בתוך דפדפני אפליקציות (ווטסאפ) וגם במחשב
+        // 4. זיהוי האם המשתמש גולש מהטלפון או מהמחשב
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
         setTimeout(() => {
-            window.location.href = `mailto:${emailTo}?subject=${subject}`;
+            if (isMobile) {
+                // בטלפון נייד: פותח את אפליקציית המייל המובנית של המכשיר
+                window.location.href = `mailto:${emailTo}?subject=${subject}`;
+            } else {
+                // במחשב: פותח ישירות את חלון כתיבת ההודעה הרשמי של Gmail בדפדפן בלשונית חדשה!
+                const gmailUrl = `https://google.com{emailTo}&su=${subject}`;
+                window.open(gmailUrl, '_blank');
+            }
         }, 300);
 
     }).catch(err => {
-        // גיבוי למקרה חירום קיצוני שהדפדפן חסם את ההעתקה האוטומטית
+        // גיבוי למקרה חירום
         const emailTo = "shavittiulim@gmail.com";
         const subject = encodeURIComponent(template.subject);
         window.location.href = `mailto:${emailTo}?subject=${subject}`;
