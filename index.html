@@ -33,6 +33,13 @@
         .send-mini-btn:hover { background-color: #219653; }
         .mini-btn-copied { background-color: #95a5a6 !important; cursor: default; }
 
+        /* פופאפ הנחיות בנייד */
+        .mobile-modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .mobile-modal-content { background-color: white; padding: 25px; border-radius: 8px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); width: 100%; max-width: 340px; }
+        .mobile-modal h3 { color: #2c3e50; margin-top: 0; font-size: 19px; }
+        .mobile-modal p { color: #555; font-size: 15px; line-height: 1.5; margin: 15px 0; }
+        .modal-go-btn { background-color: #2980b9; color: white; border: none; padding: 12px 20px; border-radius: 4px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; }
+
         #desktopOverlay { display: none; text-align: center; padding: 40px 20px; }
         #desktopOverlay h3 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
         #desktopOverlay p { color: #7f8c8d; font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
@@ -68,6 +75,15 @@
     </div>
 </div>
 
+<!-- חלון הנחיית הדבקה לנייד -->
+<div id="instructionsModal" class="mobile-modal">
+    <div class="mobile-modal-content">
+        <h3>📋 המכתב הועתק בהצלחה!</h3>
+        <p>אפליקציית המייל תיפתח כעת באופן אוטומטי.<br><br>בתוך גוף ההודעה הריק, לחצו <strong>לחיצה ארוכה</strong> ובחרו <strong>"הדבק" (Paste)</strong> כדי להכניס את המכתב.</p>
+        <button class="modal-go-btn" onclick="triggerMailto()">הבנתי, פתח את המייל</button>
+    </div>
+</div>
+
 <div id="desktopOverlay" class="container">
     <div class="phone-icon">📱</div>
     <h3>האתר מותאם לשימוש מהטלפון הנייד בלבד</h3>
@@ -77,13 +93,14 @@
     </div>
 </div>
 <script>
+// עדכון הרשימה הרשמית: אופירה מור שונתה לקואליציה (coalition)
 const councilMembers = [
     { name: "שמואל משולם (סגן רח\"צ)", email: "shmuelm@mbatya.org.il", faction: "coalition" },
     { name: "אהוד אביר-לב", email: "abirlev8@gmail.com", faction: "coalition" },
     { name: "אלי וידבסקי", email: "eli.vidavsky@gmail.com", faction: "coalition" },
     { name: "קובי שטיינברג", email: "Kobys@Amdocs.com", faction: "coalition" },
     { name: "שמואל מימון", email: "shmouelc@gmail.com", faction: "coalition" },
-	{ name: "אופירה מור", email: "Ofiramor25@gmail.com", faction: "coalition" },
+    { name: "אופירה מור", email: "Ofiramor25@gmail.com", faction: "coalition" },
     { name: "רן כהן", email: "ran.cohen@gmail.com", faction: "opposition" },
     { name: "אלעד אסרף", email: "eladasraf8@gmail.com", faction: "opposition" },
     { name: "יפית לחמני", email: "layafit@gmail.com", faction: "opposition" },
@@ -106,6 +123,8 @@ const emailTemplates = {
         body: "שלום,\n\nפנייה דחופה אליך: המועצה סוגרת את גן יסמין למרות שיש 14 ילדים רשומים! משרד החינוך מאשר פתיחה כבר מ-11 ילדים, וראש המועצה עצמו הבטיח שאם יגיעו ל-14 הגן יפתח. ההורים עמדו במילה שלהם, אך המועצה לא עומדת בשלה !\n\nזו הזדמנות פז למועצה להוביל קמפיין לאיזון בין הגנים ולייצר גנים איכותיים ואינטימיים. במקום זה, בוחרים בפתרון הקל של סגירת גן יסמין.\n\nכחלק מנציגות הציבור במועצה, נדרשת התערבותך המיידית לביטול הגזירה ופתיחת הגן.\n\nבברכה,\n"
     }
 };
+
+let currentPendingUrl = ""; // משתנה זמני לשמירת הקישור
 
 window.onload = function () {
     setRandomOption();
@@ -192,12 +211,21 @@ function sendToMember(email, index) {
         btn.classList.add("mini-btn-copied");
         btn.innerHTML = "✓ נשלח";
         
-        window.location.href = `mailto:${email}?subject=${subject}`;
+        // שמירת הקישור והקפצת פופאפ ההסבר במקום מעבר אוטומטי מיידי
+        currentPendingUrl = `mailto:${email}?subject=${subject}`;
+        document.getElementById("instructionsModal").style.display = "flex";
     }).catch(err => {
         window.location.href = `mailto:${email}?subject=${subject}`;
     });
 }
+
+function triggerMailto() {
+    // סגירת הפופאפ ומעבר מיידי לאפליקציית המייל
+    document.getElementById("instructionsModal").style.display = "none";
+    if (currentPendingUrl) {
+        window.location.href = currentPendingUrl;
+    }
+}
 </script>
 </body>
 </html>
-
