@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תושבי מזכרת בתיה למען גן יסמין - בדיקת מערכת</title>
+    <!-- טעינת ה-SDK הרשמי של גוגל להזדהות -->
+    <script src="https://google.com" async defer></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; }
+        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .checkbox-group { margin: 10px 0; max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+        .checkbox-item { margin-bottom: 8px; display: flex; align-items: center; }
+        .checkbox-item input { margin-left: 10px; }
+        
+        .error-message { color: #e74c3c; font-size: 14px; font-weight: bold; margin-top: 5px; display: none; }
+        .input-error { border: 2px solid #e74c3c !important; background-color: #fdeaea; }
+        .preview-box { background-color: #f9f9f9; border: 1px dashed #7f8c8d; padding: 15px; border-radius: 4px; margin-top: 15px; white-space: pre-wrap; font-size: 15px; line-height: 1.5; color: #444; }
+        .preview-title { font-weight: bold; margin-top: 15px; color: #2c3e50; }
+        
+        button { width: 100%; background-color: #27ae60; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: background 0.3s; }
+        button:hover { background-color: #219653; }
+        button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>מאבק בהחלטת סגירת גן יסמין במזכרת בתיה (בדיקה עצמית)</h2>
+    <p>מלאו את שמכם, בחרו נוסח, ואשרו התחברות קצרה לגוגל כדי לבדוק שליחה אוטומטית ישירות לכתובת shavittiulim@gmail.com.</p>
+
+    <!-- שלב 1: שם השולח -->
+    <label for="userName">השם שלך (חובה):</label>
+    <input type="text" id="userName" placeholder="הקלד שם מלא כאן" oninput="updatePreview()">
+    <div id="nameError" class="error-message">יש להזין שם מלא לפני השליחה.</div>
+
+    <!-- שלב 2: נמען לבדיקה -->
+    <label>נמען לבדיקת המערכת:</label>
+    <div class="checkbox-group">
+        <div class="checkbox-item">
+            <input type="checkbox" id="testCheck" checked disabled> 
+            <span>shavittiulim@gmail.com (בדיקה עצמית)</span>
+        </div>
+    </div>
+
+    <!-- שלב 3: בחירת נוסח -->
+    <label for="versionSelect">בחרו את נוסח המכתב:</label>
+    <select id="versionSelect" onchange="updatePreview()">
+        <option value="1">נוסח 1: אסטרטגי וכלכלי (מזכרת בתיה)</option>
+        <option value="2">נוסח 2: אישי וקהילתי</option>
+        <option value="3">נוסח 3: קצר ותמציתי (מעודכן)</option>
+    </select>
+
+    <!-- תצוגה מקדימה דינמית -->
+    <div class="preview-title">תצוגה מקדימה של המייל שיישלח:</div>
+    <div id="emailSubjectPreview" style="font-weight: bold; margin-top: 5px; color: #34495e;"></div>
+    <div id="emailBodyPreview" class="preview-box"></div>
+
+    <!-- כפתור פעולה -->
+    <button id="actionBtn" onclick="startAuth()">בצע בדיקת שליחה אוטומטית</button>
+</div>
+
+<script>
+// חובה להדביק כאן את ה-Client ID שקיבלת מגוגל קלאוד
+const CLIENT_ID = '747214951182-dagjbteg9fkff0qr7adim0sed9dj61e3.apps.googleusercontent.com'; 
+const SCOPES = 'https://googleapis.com'; 
+
+let tokenClient;
+let accessToken = null;
+
+const emailTemplates = {
+    "1": {
+        subject: "פנייה דחופה – סגירת גן יסמין היא טעות אסטרטגית ליישוב",
+        body: "שלום,\n\nאני פונה אליך באופן אישי לקראת שנת הלימודים הקרובה.\nהחלטת המועצה לסגור את גן יסמין הממלכתי, למרות שנרשמו אליו 14 ילדים, היא החמצה אסטרטגית קשה.\n\nמשרד החינוך מאפשר לפתוח גנים החל מ-11 ילדים.\nראש המועצה הציב רף של 14 ילדים – וההורים עמדו בו.\nבמקום לסגור את הגן, המועצה הייתה צריכה למנף את ההצלחה הזו לקמפיין רחב שיאזן בין זרמי החינוך ביישוב ויציע חינוך אינטימי ואיכותי.\n\nסגירת גן יסמין תביא לצפיפות בגנים, תרחיק משפחות איכותיות צעירות מהיישוב ותקשה על הצוותים. כחלק מנציגות הציבור במועצה, אני מצפה ממך להשמיע קול ברור, לפנות לראש המועצה ולדרוש את פתיחת הגן כפי שהובטח ובכך לשפר את החינוך במזכרת בתיה.\n\nבברכה,\n"
+    },
+    "2": {
+        subject: "אל תתנו יד לסגירת גן יסמין שלנו",
+        body: "שלום רב,\n\nכתושב/ת המועצה, קשה לי לעמוד מן הצד מול ההחלטה לסגור את גן יסמין ביישוב.\n\nההורים עשו מעל ומעבר והגיעו ל-14 ילדים רשומים, בדיוק כפי שדרש ראש המועצה, ויותר מהמינימום הנדרש על ידי משרד החינוך (11 ילדים). הילדים האלו זכאים למסגרת חינוכית קרובה, איכותית ואינטימית בקהילה שלהם.\n\nבמקום לחבק את ההורים ולצאת בקמפיין שמחזק את החינוך הממלכתי, המועצה סוגרת לגן יסמין את הדלת. המשבר הזה הוא הזדמנות ליצירת מודל חינוכי מצוין, ואסור לנו לפספס אותו.\n\nאנא התערבו באופן מיידי מול ראש המועצה כדי להציל את הגן.\n\nבברכה,\n"
+    },
+    "3": {
+        subject: "דרישה להתערבותך: עמדנו ביעד – אל תסגרו את גן יסמין!",
+        body: "שלום,\n\nפנייה דחופה אליך: המועצה סוגרת את גן יסמין למרות שיש 14 ילדים רשומים! משרד החינוך מאשר פתיחה כבר מ-11 ילדים, וראש המועצה עצמו הבטיח שאם נגיע ל-14 הגן יפתח. עמדנו במילה שלנו, אך המועצה לא עומדת בשלה !\n\nזו הזדמנות פז למועצה להוביל קמפיין לאיזון זרמי החינוך ולייצר גן איכותי ואינטימי. במקום זה, בוחרים בפתרון הקל של סגירת גן יסמין.\n\nכחלק מנציגות הציבור במועצה, נדרשת התערבותך המיידית לביטול הגזירה ופתיחת הגן.\n\nבברכה,\n"
+    }
+};
+
+window.onload = function () {
+    try {
+        if (typeof google === 'undefined' || typeof google.accounts === 'undefined') {
+            alert("שגיאה קריטית: הספרייה של גוגל לא נטענה בדף. בדקו חיבור לאינטרנט או תוספים חוסמי קוד (AdBlock).");
+            return;
+        }
+        
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (tokenResponse) => {
+                if (tokenResponse.error !== undefined) {
+                    alert("שגיאת אימות מגוגל: " + tokenResponse.error + "\nתיאור: " + tokenResponse.error_description);
+                    resetButton();
+                    return;
+                }
+                accessToken = tokenResponse.access_token;
+                executeGmailSend();
+            },
+            error_callback: (err) => {
+                alert("שגיאת אתחול פנימית של הלקוח: " + JSON.stringify(err));
+                resetButton();
+            }
+        });
+    } catch (e) {
+        alert("נכשלה יצירת הלקוח של גוגל. שגיאה: " + e.message);
+    }
+    setRandomOption();
+    updatePreview();
+};
+
+function updatePreview() {
+    const inputField = document.getElementById("userName");
+    const name = inputField.value.trim();
+    const selectedVersion = document.getElementById("versionSelect").value;
+    const template = emailTemplates[selectedVersion];
+    
+    if (name.length > 0) {
+        inputField.classList.remove("input-error");
+        document.getElementById("nameError").style.display = "none";
+    }
+
+    const displayName = name || "[חובה להקליד את שמך כאן]";
+    document.getElementById("emailSubjectPreview").innerText = "נושא: " + template.subject;
+    document.getElementById("emailBodyPreview").innerText = template.body + displayName;
+}
+
+function setRandomOption() {
+    const options = ["1", "2", "3"];
+    const randomIndex = Math.floor(Math.random() * options.length);
+    document.getElementById("versionSelect").value = options[randomIndex];
+}
+
+function startAuth() {
+    const inputField = document.getElementById("userName");
+    const name = inputField.value.trim();
+    
+    if (!name) {
+        inputField.classList.add("input-error");
+        document.getElementById("nameError").style.display = "block";
+        inputField.focus();
+        return;
+    }
+
+    if (CLIENT_ID.includes("YOUR_GOOGLE_CLIENT_ID")) {
+        alert("🚨 שגיאת מתכנת: לא החלפת את הטקסט 'YOUR_GOOGLE_CLIENT_ID' בתוך הקוד ב-Client ID האמיתי שלך!");
+        return;
+    }
+
+    document.getElementById("actionBtn").disabled = true;
+    document.getElementById("actionBtn").innerText = "...מבצע התחברות מאובטחת";
+    
+    try {
+        alert("מנסה לפתוח כעת את חלון האימות של גוגל...");
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    } catch (e) {
+        alert("הפקודה לפתיחת החלון נכשלה בקוד. שגיאה: " + e.message);
+        resetButton();
+    }
+}
+
+function resetButton() {
+    document.getElementById("actionBtn").disabled = false;
+    document.getElementById("actionBtn").innerText = "בצע בדיקת שליחה אוטומטית";
+}
+
+async function executeGmailSend() {
+    const name = document.getElementById("userName").value.trim();
+    const selectedVersion = document.getElementById("versionSelect").value;
+    const template = emailTemplates[selectedVersion];
+    const fullBody = template.body + name;
+
+    const mail = [
+        'To: shavittiulim@gmail.com',
+        'Subject: =?utf-8?B?' + btoa(unescape(encodeURIComponent(template.subject))) + '?=',
+        'Content-Type: text/plain; charset="UTF-8"',
+        'MIME-Version: 1.0',
+        '',
+        fullBody
+    ].join('\n');
+
+    const base64EncodedMail = btoa(unescape(encodeURIComponent(mail)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+\$/, '');
+
+    try {
+        const response = await fetch('https://googleapis.com', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: base64EncodedMail })
+        });
+
+        if (response.ok) {
